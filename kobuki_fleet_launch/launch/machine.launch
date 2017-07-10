@@ -1,0 +1,21 @@
+<launch>
+
+   <arg name="machine_id" default="1" />
+    <arg name="ws_pose_x" default="0.0" />
+    <arg name="ws_pose_y" default="0.0" />
+  
+  <node pkg = "kobuki_fleet_machine" name = "machine_task_manager_node$(arg machine_id)" type = "machine_task_manager_node" output = "screen">
+    <param name = "machine_id"                    type = "int"    value = "$(arg machine_id)" />
+    <param name = "topic_create_new_task_server"  type = "string" value = "/createNewTaskServer_ws_$(arg machine_id)" />
+    <param name = "topic_new_task"                type = "string" value = "/new_task"/>
+    <param name = "topic_machine_task_info"       type = "string" value = "/machineHB"/>
+    <param name = "topic_bidding"                 type = "string" value = "/bidding_ws_$(arg machine_id)" />
+    <param name = "topic_assign_task"             type = "string" value = "/assign_task_r"/>
+    <param name = "topic_task_status"             type = "string" value = "/task_status_ws_$(arg machine_id)"/>
+    <param name = "ws_pose_x"                     type = "double" value = "$(arg ws_pose_x)"/>
+    <param name = "ws_pose_y"                     type = "double" value = "$(arg ws_pose_y)"/>
+</node>
+  
+ <node pkg="tf" type="static_transform_publisher" name="tf_machine_$(arg machine_id)" args="$(arg ws_pose_x) $(arg ws_pose_y) 0 0 0 0 /map /machine$(arg machine_id) 10"/> 
+
+</launch>

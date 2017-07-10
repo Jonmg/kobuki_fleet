@@ -1,0 +1,7 @@
+<launch>
+  <include file = "$(find kobuki_fleet_launch)/launch/machine.launch">
+      <arg name="machine_id" default="1" />
+      <arg name="ws_pose_x" default="8.0" />
+      <arg name="ws_pose_y" default="3.0" />
+  </include>
+</launch>

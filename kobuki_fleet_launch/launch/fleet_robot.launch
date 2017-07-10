@@ -1,0 +1,37 @@
+<launch>
+    <arg name="robot_ns" default="robot4711" />
+    <arg name="robot_id" default="4711" />
+    <arg name="offset_x" default="0.0" />
+    <arg name="offset_y" default="0.0" />	  
+    <arg name="offset_yaw" default="0.0" />	
+    <arg name="simulation" default="false" />
+   
+    <!-- robot and navigation for robot in rviz -->
+    <node pkg="stdr_robot" type="robot_handler" name="$(anon robot_spawn)" args="add $(find kobuki_fleet_launch)/resources/robots/kobuki_robot.yaml $(arg offset_x) $(arg offset_y) 0.0 $(arg robot_ns)" /> 
+
+    <include file="$(find kobuki_fleet_launch)/launch/stdr_robot_navigation.launch">
+        <arg name = "robot_ns"   value = "$(arg robot_ns)" />
+        <arg name = "offset_x"   value = "$(arg offset_x)" />    
+        <arg name = "offset_y"   value = "$(arg offset_y)" /> 
+        <arg name = "offset_yaw" value = "$(arg offset_yaw)"/> 
+    </include>  
+
+    <!-- state machine -->
+    <include file="$(find kobuki_fleet_launch)/launch/state_machine.launch">
+        <arg name = "robot_ns"   value = "$(arg robot_ns)" />
+        <arg name = "robot_id"   value = "$(arg robot_id)"/>
+        <arg name = "simulation" value = "$(arg simulation)" />
+    </include> <!--  --> 
+    
+    <!-- monitoring Heart Beat -->
+    <node pkg="kobuki_fleet_neocortec" type="monitoring_fleet_node" name="monitoring_fleet_node_$(arg robot_id)" output="screen">
+        <param name="topic_heartbeat_global" type="string" value="/HB" />
+        <param name="topic_heartbeat_list" type="string" value="heartbeat_list_robot_$(arg robot_id)" />
+        <param name="topic_connection_state" type="string" value="connection_state_robot_$(arg robot_id)" />
+        <param name="topic_neocortec_send_data" type="string" value="neocortec_$(arg robot_id)_send_data" />
+        <param name="frame_map" type="string" value="map" />
+        <param name="frame_base_footprint" type="string" value="/$(arg robot_ns)" /> 
+        <param name="roboter_id" type="int" value="$(arg robot_id)" />
+    </node> <!---->
+    
+</launch>

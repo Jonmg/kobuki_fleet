@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="robot_ns" default="robot0" />
+  <arg name="offset_x" default="0.0" />
+  <arg name="offset_y" default="0.0" />	  
+  <arg name="offset_yaw" default="0.0" />
+  	
+    <!-- Move base navigation -->
+    <arg name="odom_frame_id"   default="map"/>
+    <arg name="base_frame_id"   default="$(arg robot_ns)" /> <!-- _base_footprint? --> 
+    <arg name="global_frame_id" default="map"/>
+    <arg name="odom_topic" default="odom" />
+    <arg name="laser_topic" default="laser_0" />
+
+	<!-- output="screen" -->
+    <node pkg="move_base" type="move_base" respawn="false" name="$(arg robot_ns)_move_base"  clear_params="true" output="log">
+      <rosparam file="$(find turtlebot_navigation)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find turtlebot_navigation)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />   
+      <rosparam file="$(find turtlebot_navigation)/param/local_costmap_params.yaml" command="load" />   
+      <rosparam file="$(find turtlebot_navigation)/param/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find turtlebot_navigation)/param/dwa_local_planner_params.yaml" command="load" />
+      <rosparam file="$(find turtlebot_navigation)/param/move_base_params.yaml" command="load" />
+      <rosparam file="$(find turtlebot_navigation)/param/global_planner_params.yaml" command="load" />
+      <rosparam file="$(find turtlebot_navigation)/param/navfn_global_planner_params.yaml" command="load" />
+    
+      <!-- reset frame_id parameters using user input data -->
+      <param name="global_costmap/global_frame" value="$(arg global_frame_id)"/>
+      <param name="global_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+      <param name="local_costmap/global_frame" value="$(arg odom_frame_id)"/>
+      <param name="local_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+      <param name="DWAPlannerROS/global_frame_id" value="$(arg odom_frame_id)"/>
+
+      <param name="global_costmap/obstacle_layer/scan/min_obstacle_height" value="0.0"/> <!-- changed minimal obstacle height from 0.25 to 0.0 -->
+      <param name="local_costmap/obstacle_layer/scan/min_obstacle_height" value="0.0"/> <!-- changed minimal obstacle height from 0.25 to 0.0 -->
+
+      <remap from="cmd_vel" to="$(arg robot_ns)/cmd_vel"/>
+      <remap from="odom" to="$(arg robot_ns)/odom"/>
+      <remap from="scan" to="$(arg robot_ns)/laser_0"/>
+
+      <remap from="move_base" to="$(arg robot_ns)/move_base"/>
+      <remap from="/move_base_simple/goal" to="$(arg robot_ns)/move_base_simple/goal"/>
+    </node>
+  
+</launch>

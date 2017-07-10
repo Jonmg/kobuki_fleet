@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="robot_ns" default="robot0" />
+  <arg name="offset_x" default="0.0" />
+  <arg name="offset_y" default="0.0" />	  
+  <arg name="offset_yaw" default="0.0" />
+  	
+  <group ns="$(arg robot_ns)">
+
+    <!-- Map server -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find ohm_maps)/maps/thn_ka_5_floor_without_corridor/map.yaml" />
+
+    <!-- Static transform base_footprint -> laser -->
+    <node pkg="tf" type="static_transform_publisher" name="laserTf" args="0.20 0 0 0 0 0 $(arg robot_ns)_base_footprint $(arg robot_ns)_laser 10" /> <!-- BoschIMU: use base_footprint_ekf frame -->
+
+    <!-- IMU publisher -->
+    <node pkg = "ohm_bob_localization" type = "IMUPublisherNode" name = "IMUPublisherNode_bno055" output="screen">
+      <param name = "serial_adapter" type = "string" value = "/dev/bno055" />
+      <param name = "imu_publisher_raw" type = "string" value = "imu_raw_bno055" />
+      <param name = "imu_publisher_fused" type = "string" value = "imu_fused_bno055" />
+      <param name = "imu_frame_id" type = "string" value = "$(arg robot_ns)_base_footprint_ekf" />
+      <param name = "imu_type" type = "string" value = "arduino" />
+    </node>
+
+    <!-- RPlidar -->
+    <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen" respawn="true">
+      <param name="serial_port"         type="string" value="/dev/rplidar"/>
+      <param name="serial_baudrate"     type="int"    value="115200"/>
+      <param name="frame_id"            type="string" value="$(arg robot_ns)_laser"/>
+      <param name="inverted"            type="bool"   value="false"/>
+      <param name="angle_compensate"    type="bool"   value="true"/>
+    </node>
+
+    <!-- <node name="camNode" pkg="uvc_camera" type="uvc_camera_node"/> -->
+
+    <!-- Laser filter -->
+    <node pkg = "ohm_bob_laser_filter" type = "bob_laser_filter" name = "bob_laser_filter" output = "screen" >
+      <param name = "laser_input_topic"  type = "string" value = "scan" />
+      <param name = "laser_output_topic" type = "string" value = "filtered_scan" />
+      <param name = "laser_tf_frame"     type = "string" value = "$(arg robot_ns)_laser"/>
+      <param name = "min_angle"          type = "double" value = "-1.57" />
+      <param name = "max_angle"          type = "double" value = "1.57" />
+      <param name = "mirror"             type = "bool"   value = "false" />
+    </node>
+
+    <!-- launcher for running a default Kobuki (minimal.launch) -->
+    <arg name="kobuki_publish_tf" default="true"/> <!-- Publish base_footprint - odom transforms (usually good thing to have for localisation) -->
+    <arg name="kobuki_use_imu_heading" default="true"/> <!-- Use imu readings for heading instead of encoders -->
+
+    <node pkg="nodelet" type="nodelet" name="mobile_base_nodelet_manager" args="manager"/>
+    <node pkg="nodelet" type="nodelet" name="mobile_base" args="load kobuki_node/KobukiNodelet mobile_base_nodelet_manager">
+      <rosparam file="$(find kobuki_node)/param/base.yaml" command="load"/>
+      <param name="publish_tf" value="$(arg kobuki_publish_tf)"/>
+      <param name="use_imu_heading" value="$(arg kobuki_use_imu_heading)"/>
+      <param name="odom_frame" value="$(arg robot_ns)_odom"/> <!-- underscore instead of slash -->
+      <param name="base_frame" value="$(arg robot_ns)_base_footprint"/> <!-- underscore instead of slash -->
+
+      <remap from="mobile_base/odom" to="odom"/>
+      <remap from="mobile_base/joint_states" to="joint_states"/>
+    </node>
+
+    <!-- diagnostic from kobuki_node/minimal.launch -->
+    <node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" >
+      <rosparam command="load" file="$(find kobuki_node)/param/diagnostics.yaml" />
+    </node>
+
+    <!-- Ekf -->
+    <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
+      <param name="output_frame" value="$(arg robot_ns)_odom"/>
+      <param name="base_footprint_frame" value="$(arg robot_ns)_base_footprint_ekf"/>
+      <param name="freq" value="30.0"/>
+      <param name="sensor_timeout" value="1.0"/>
+      <param name="odom_used" value="true"/>
+      <param name="imu_used" value="true"/>
+      <param name="vo_used" value="false"/>
+      <param name="gps_used" value="false"/>
+
+      <remap from="imu_data" to="imu_fused_bno055" />
+    </node>
+
+    <!-- Ohm pf -->
+    <include file="$(find ohm_pf)/launch/ohm_pf.launch">
+      <arg name="output" value="screen" />
+      <arg name="tfFixedFrame" value="/map" />
+      <arg name="tfBaseFootprintFrame" value="$(arg robot_ns)_base_footprint" /> <!-- BoschIMU: use base_footprint_ekf frame -->
+      <arg name="tfOdomFrame" value="$(arg robot_ns)_odom" />
+      <arg name="tfOutputFrame" value="$(arg robot_ns)_ohm_pf_output" />
+      <arg name="topOdometry" value="odom" />
+      <arg name="top2dPoseEst" value="initialpose" />
+      <arg name="topCeilCam" value="rssi_poses" />
+      <arg name="topMap" value="map" />
+      <arg name="topMapSrv" value="static_map" />
+      <arg name="samplesMax" value="5000" />
+      <arg name="samplesMin" value="50" />
+      <arg name="topScan" value="filtered_scan" />
+      <arg name="maxDistanceProbMap" value="15" />
+      <arg name="subsamplingRateLaser" value="3" />
+      <arg name="resamplingIntervallFilter" value="0.5" />
+      <arg name="uncertaintyLaser" value="0.5" />
+      <arg name="resamplingMethod" value="STD" />
+      <arg name="initSigmaTrans" value="0.5" />
+      <arg name="initSigmaRot" value="0.2" />
+      <arg name="initMode" value="POSE" />
+      <arg name="OCSThresholdLaser" value="0.2" />
+      <arg name="OCSThresholdOdom" value="0.001" />
+      <arg name="OCSThresholdResampler" value="0.2" />
+      <arg name="skipParticleForGui" value ="10" />
+    </include>
+
+    <!-- Move base navigation -->
+    <arg name="odom_frame_id"   default="$(arg robot_ns)_odom"/>
+    <arg name="base_frame_id"   default="$(arg robot_ns)_base_footprint" /> <!-- BoschIMU: use base_footprint_ekf frame -->
+    <arg name="global_frame_id" default="map"/>
+    <arg name="odom_topic" default="odom" />
+    <arg name="laser_topic" default="filtered_scan" />
+
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
+      <rosparam file="$(find turtlebot_navigation)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find turtlebot_navigation)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />   
+      <rosparam file="$(find turtlebot_navigation)/param/local_costmap_params.yaml" command="load" />   
+      <rosparam file="$(find turtlebot_navigation)/param/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find turtlebot_navigation)/param/dwa_local_planner_params.yaml" command="load" />
+      <rosparam file="$(find turtlebot_navigation)/param/move_base_params.yaml" command="load" />
+      <rosparam file="$(find turtlebot_navigation)/param/global_planner_params.yaml" command="load" />
+      <rosparam file="$(find turtlebot_navigation)/param/navfn_global_planner_params.yaml" command="load" />
+    
+      <!-- reset frame_id parameters using user input data -->
+      <param name="global_costmap/global_frame" value="$(arg global_frame_id)"/>
+      <param name="global_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+      <param name="local_costmap/global_frame" value="$(arg odom_frame_id)"/>
+      <param name="local_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+      <param name="DWAPlannerROS/global_frame_id" value="$(arg odom_frame_id)"/>
+
+      <param name="global_costmap/obstacle_layer/scan/min_obstacle_height" value="0.0"/> <!-- changed minimal obstacle height from 0.25 to 0.0 -->
+      <param name="local_costmap/obstacle_layer/scan/min_obstacle_height" value="0.0"/> <!-- changed minimal obstacle height from 0.25 to 0.0 -->
+
+      <remap from="cmd_vel" to="mobile_base/commands/velocity"/>
+      <remap from="odom" to="$(arg odom_topic)"/>
+      <remap from="scan" to="$(arg laser_topic)"/>
+
+    </node>
+
+  </group>
+</launch>

@@ -1,0 +1,41 @@
+<launch>
+
+<!-- Notes: topic_connection_state, topic_state_machine_stat, topic_velocity, topic_move_base_action and topic_heart_beat_list changed-->
+	
+	<!-- extern parameters -->
+	<arg name="robot_ns" default="robot4711" />
+	<arg name="robot_id" default="1" />
+  <arg name="simulation" default="false" />
+	<node pkg = "kobuki_fleet_state_machine" name = "fleet_state_machine$(arg robot_id)" type = "state_machine" output = "screen">
+		<!-- MAIN -->
+		<param name = "robot_id" type = "int" value = "$(arg robot_id)" />
+		<param name = "topic_connection_state" type = "string" value = "connection_state_robot_$(arg robot_id)" />
+    <param name = "topic_kill_robot_service" type = "string" value = "$(arg robot_ns)/kill" />
+		<param name = "loop_rate" type = "double" value = "1.0"/>
+    <param name = "simulation" type = "bool" value = "$(arg simulation)" /> 
+		<!-- STATE_FLEET_BASE -->
+		<param name = "topic_state_machine_stat" type = "string" value = "$(arg robot_ns)/state_machine_stat" />		
+		<!-- STATE_INIT -->
+		<param name = "topic_velocity"    type = "string" value = "$(arg robot_ns)/cmd_vel" /> <!-- Kobuki: mobile_base/commands/velocity--> 
+    <param name = "topic_covariance"  type = "string" value = "probPose" /> <!-- Next 3 param, not necessary-->
+    <param name = "thresh_covariance" type = "double" value = "0.8" />
+    <param name = "init_angular_vel"  type = "double" value = "0.5" />	
+		<!-- STATE_DRIVE -->	
+		<param name = "topic_move_base_action" type = "string" value = "$(arg robot_ns)/move_base" />		
+		<!-- CONTROLLER_TASK_LIST -->
+		<param name = "topic_task_list"         type = "string" value = "/task_list"         />                          
+    <param name = "topic_initial_task_list" type = "string" value =  "/initial_task_list"/>	
+    <param name = "topic_new_task"                type = "string" value = "/new_task"/>
+    <param name = "topic_bidding"                 type = "string" value = "/bidding_ws_" />
+    <param name = "topic_assign_task"             type = "string" value = "/assign_task_r$(arg robot_id)"/>
+    <param name = "get_plan_topic"             type = "string" value = "$(arg robot_ns)_move_base/NavfnROS/make_plan"/>
+    <param name = "tf_base_frame"             type = "string" value = "map"/>
+    <param name = "tf_robot_frame"             type = "string" value = "$(arg robot_ns)"/>
+    <param name = "topic_task_status"             type = "string" value = "/task_status_ws_"/>
+
+		<!-- CONTROLLER_HEARTBEAT_LIST -->
+		<param name = "topic_heart_beat_list" type = "string" value = "heartbeat_list_robot_$(arg robot_id)" />			
+	</node>
+	
+
+</launch>

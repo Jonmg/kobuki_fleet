@@ -1,0 +1,15 @@
+<launch>
+
+
+
+  <include file="$(find neocortec)/launch/neocortec.launch">
+    <arg name="id" value="02" />
+    <arg name="adapter" value="/dev/ttyUSB5" />
+  </include>
+
+  <include file="$(find neocortec)/launch/neocortec.launch">
+    <arg name="id" value="03" />
+    <arg name="adapter" value="/dev/ttyUSB6" />
+  </include>
+
+</launch>

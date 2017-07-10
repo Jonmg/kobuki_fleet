@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="rid" value="05"/>
+  
+  <node pkg="kobuki_fleet_neocortec" type="neocortec_rssi_bridge_node" name="neocortec_rssi_bridge_node" output="screen">
+    <param name="top_nc_data" type="string" value="/robot_0/neocortec_received_data" />
+    <param name="top_heart_beat_list" type="string" value="/robot_0/heartbeat_list" />
+    <param name="top_poses" type="string" value="/robot_0/rssi_poses" />
+    <param name="neocortec_rssi_node_id" type="int" value="3" />
+  </node>
+
+</launch>

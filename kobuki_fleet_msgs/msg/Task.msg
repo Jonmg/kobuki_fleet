@@ -1,0 +1,10 @@
+Header header
+uint16 tid
+uint16 rid1
+uint16 rid2
+geometry_msgs/Pose task
+uint8 OPEN=0
+uint8 WORKING=1
+uint8 FINISHED=2
+uint8 ERROR=3
+uint8 task_status

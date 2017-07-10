@@ -1,0 +1,10 @@
+Header header
+uint16 rid
+uint8 nid
+uint8 rob_status
+uint8 OK=0
+uint8 DISCONNECTED=1
+float32 x
+float32 y
+float32 yaw
+bool nchb

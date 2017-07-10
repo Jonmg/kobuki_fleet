@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<!--args aus startup.launch -->
+
+  <arg name="RID" />		
+  <arg name="NID" />
+
+	
+   <arg name="offset_x" value="0.0" />
+	
+  <rosparam file = "$(find ohm_bob_kobuki_fleet)/config/robot_$(arg RID).yaml" command = "load" ns = "robot_$(arg RID)/ohm_pf_node"/>
+
+  <include file="$(find ohm_bob_kobuki_fleet)/launch/fleet_navigation.launch">
+    <arg name = "robot_ns"   value = "robot_$(arg RID)" />		
+  </include>	
+
+  <node pkg="master_discovery_fkie" type="master_discovery" name="master_discovery_$(arg RID)" output="screen" />
+  
+  <node pkg="master_sync_fkie" type="master_sync" name="master_sync_node_$(arg RID)" output="screen">
+    <param name="sync_nodes" type="string" value="*monitoring_fleet_node" />
+  </node>
+	
+  <group ns="robot_$(arg RID)">		
+
+  <include file="$(find ohm_bob_kobuki_fleet)/launch/state_machine.launch"> 
+      <arg name="robot_id" value="$(arg RID)"/>	
+  </include>
+    
+
+  <node pkg="ohm_bob_kobuki_fleet" type="monitoring_fleet_node" name="monitoring_fleet_node" output="screen">
+    <param name="topic_heartbeat_global" type="string" value="/HB" />
+    <param name="topic_heartbeat_list" type="string" value="heartbeat_list" />
+    <param name="topic_connection_state" type="string" value="connection_state" />
+    <param name="topic_neocortec_send_data" type="string" value="neocortec_send_data" />
+    <param name="frame_map" type="string" value="map" />
+    <param name="frame_base_footprint" type="string" value="robot_$(arg RID)_base_footprint" />	<!-- anpassen -->
+    <param name="roboter_id" type="int" value="$(arg RID)" />
+    <param name="neocortec_id" type="int" value="$(arg NID)" />
+    <param name="neocortec_port" type="int" value="1" />
+    <param name="send_heartbeat" type="bool" value="true" />
+  </node>
+  
+  <!-- LED und neocortec module deactivated
+  <node pkg="ohm_bob_kobuki_fleet" type="neocortec_heartbeat_bridge_node" name="neocortec_heartbeat_bridge_node" output="screen">
+    <param name="top_wifi_heartbeat" type="string" value="/HB" />
+    <param name="top_nc_heartbeat" type="string" value="neocortec_received_data" />
+    <param name="neocortec_rssi_node" type="int" value="4" />
+  </node>
+
+  <node pkg="neocortec" type="neocortec_node" name="neocortec_node" output="screen">
+    <param name="adapter" type="string" value="/dev/neocortec" />
+    <param name="top_srv_send_data" type="string" value="neocortec_send_data" />
+    <param name="top_received_data" type="string" value="neocortec_received_data" />
+    <param name="acknowledgedTimeout" type="double" value="30" />
+  </node>
+  
+  <include file="$(find ohm_bob_kobuki_fleet)/launch/led.launch"/>
+  -->
+
+    
+  </group>
+
+
+</launch>

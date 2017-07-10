@@ -1,0 +1,32 @@
+<launch>
+  <arg name="id" default="00"/>
+
+
+  <node pkg="kobuki_fleet_neocortec" type="monitoring_fleet_node" name="monitoring_fleet_node_$(arg id)" output="screen">
+    <param name="topic_heartbeat_global" type="string" value="/HB" />
+    <param name="topic_heartbeat_list" type="string" value="heartbeat_list_robot_$(arg id)" />
+    <param name="topic_connection_state" type="string" value="connection_state_robot_$(arg id)" />
+    <param name="topic_neocortec_send_data" type="string" value="neocortec_$(arg id)_send_data" />
+    <param name="frame_map" type="string" value="map" />
+    <param name="frame_base_footprint" type="string" value="base_footprint" />
+    <param name="roboter_id" type="int" value="$(arg id)" />
+  </node>
+
+  <node pkg="neocortec" type="neocortec_node" name="neocortec_node_$(arg id)" output="screen">
+    <param name="adapter" type="string" value="/dev/neocortec" />
+    <param name="top_srv_send_data" type="string" value="neocortec_$(arg id)_send_data" />
+    <param name="top_received_data" type="string" value="neocortec_$(arg id)_received_data" />
+    <param name="acknowledgedTimeout" type="double" value="10" />
+  </node>
+
+  <node pkg="kobuki_fleet_neocortec" type="neocortec_heartbeat_bridge_node" name="neocortec_heartbeat_bridge_node_$(arg id)" output="screen">
+    <param name="top_wifi_heartbeat" type="string" value="/HB" />
+    <param name="top_nc_heartbeat" type="string" value="neocortec_$(arg id)_received_data" />
+  </node>
+
+  <node pkg="master_discovery_fkie" type="master_discovery" name="master_discovery_node_$(arg id)" output="screen" />
+
+  <node pkg="master_sync_fkie" type="master_sync" name="master_sync_node_$(arg id)" output="screen">
+    <param name="ignore_topics" value="['/HB']" /> 
+  </node>
+</launch>

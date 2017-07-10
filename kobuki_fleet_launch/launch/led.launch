@@ -1,0 +1,10 @@
+<launch>
+	<node pkg = "ohm_bob_kobuki_fleet" name = "led_node" type = "ui_kobuki_led">	
+       <param name = "topic_state_machine_stat" type = "string" value = "state_machine_stat"/> 
+       <param name = "topic_led_connection"     type = "string" value = "mobile_base/commands/led1"/>
+       <param name = "topic_led_state"          type = "string" value = "mobile_base/commands/led2"/>
+       <param name = "time_out_no_message"      type = "double" value = "1.5"/>
+       <param name = "loop_rate"                type = "double" value = "20.0"/>
+	</node>
+	
+</launch>

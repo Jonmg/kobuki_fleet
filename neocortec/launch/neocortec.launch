@@ -1,0 +1,13 @@
+<launch>
+
+  <arg name="id" default="01" />
+  <arg name="adapter" default="/dev/neocortec" />
+
+  <node pkg="neocortec" type="neocortec_node" name="neocortec_node_$(arg id)" output="screen">
+    <param name="adapter" type="string" value="$(arg adapter)" />
+    <param name="top_srv_send_data" type="string" value="neocortec_$(arg id)_send_data" />
+    <param name="top_received_data" type="string" value="neocortec_$(arg id)_received_data" />
+    <param name="acknowledgedTimeout" type="double" value="30" />
+  </node>
+
+</launch>

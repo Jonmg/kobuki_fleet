@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="rid" value="05"/>
+  
+  <node pkg="kobuki_fleet_neocortec" type="neocortec_heartbeat_bridge_node" name="neocortec_heartbeat_bridge_node_$(arg rid)" output="screen">
+    <param name="top_wifi_heartbeat" type="string" value="/HB" />
+    <param name="top_nc_heartbeat" type="string" value="neocortec_$(arg rid)_received_data" />
+    <param name="neocortec_rssi_node" type="int" value="4" />
+  </node>
+  
+</launch>

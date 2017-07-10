@@ -1,0 +1,9 @@
+kobuki_fleet_msgs/Task task
+
+#maybe the taskType is not necesary. Determined in the task
+uint8 taskType
+uint8 PRIMARY=1
+uint8 SECONDARY=2
+---
+# respone if the assignment has been accepted. Not possible to assign a secondary if there is already one
+std_msgs/Bool statusAsignation

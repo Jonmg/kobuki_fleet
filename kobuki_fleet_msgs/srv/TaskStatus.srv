@@ -1,0 +1,14 @@
+uint16 tid
+uint16 rid
+
+uint8 GET=0
+uint8 SET=1
+uint8 action
+
+uint8 OPEN=0
+uint8 WORKING=1
+uint8 FINISHED=2
+uint8 ERROR=3
+uint8 task_status
+---
+uint8 task_status

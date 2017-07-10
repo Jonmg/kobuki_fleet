@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="rid" default="05"/>
+  <arg name="nid" default="5"/>
+  
+  <node pkg="kobuki_fleet_neocortec" type="monitoring_fleet_node" name="monitoring_fleet_node_$(arg rid)" output="screen">
+    <param name="topic_heartbeat_global" type="string" value="/HB" />
+    <param name="topic_heartbeat_list" type="string" value="heartbeat_list_robot_$(arg rid)" />
+    <param name="topic_connection_state" type="string" value="connection_state_robot_$(arg rid)" />
+    <param name="topic_neocortec_send_data" type="string" value="neocortec_$(arg rid)_send_data" />
+    <param name="frame_map" type="string" value="map" />
+    <param name="frame_base_footprint" type="string" value="base_footprint" />
+    <param name="roboter_id" type="int" value="$(arg rid)" />
+    <param name="neocortec_id" type="int" value="$(arg nid)" />
+    <param name="neocortec_port" type="int" value="1" />
+    <param name="send_heartbeat" type="bool" value="true" />
+  </node>
+  
+</launch>
