@@ -1,0 +1,11 @@
+<launch>
+  <include file = "$(find kobuki_fleet_launch)/launch/machine1.launch"/>
+  <include file = "$(find kobuki_fleet_launch)/launch/machine2.launch"/>
+  <include file = "$(find kobuki_fleet_launch)/launch/machine3.launch"/>
+  <include file = "$(find kobuki_fleet_launch)/launch/machine4.launch"/>
+<!--  <include file = "$(find kobuki_fleet_launch)/launch/machine5.launch"/>
+  <include file = "$(find kobuki_fleet_launch)/launch/machine6.launch"/>-->
+  <include file = "$(find kobuki_fleet_launch)/launch/machine7.launch"/>
+  <include file = "$(find kobuki_fleet_launch)/launch/machine8.launch"/>
+  <include file = "$(find kobuki_fleet_launch)/launch/machine9.launch"/>
+</launch>

@@ -23,16 +23,12 @@
 #include <tf/transform_listener.h>
 #include <tf/tf.h>
 
+#include "model.h"
+
 /**
  * @file controller_task_list.h
  * @brief contains declaration of class ControllerTaskList
  */
-
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
 
 /**
  * @enum TaskOrder
@@ -142,8 +138,8 @@ private:
   kobuki_fleet_msgs::NewTaskList* newTaskList_;///< storage for current newTaskList
   std_msgs::UInt16* lastTid_;                ///< buffer for storing the id of the last changed task
   std_msgs::UInt8* lastTstate_;              ///< buffer for storing the state of the last changed task
-};
 
-} /* namespace bobbyrob */
+  Model* model_;
+};
 
 #endif /* SRC_STATE_MACHINE_MODEL_CONTROLLER_TASK_LIST_H_ */

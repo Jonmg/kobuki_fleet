@@ -3,6 +3,7 @@
  *
  *  Created on: Aug 3, 2016
  *      Author: phil
+ *      Author: Jon Martin
  */
 
 /**
@@ -16,20 +17,15 @@
 
 #include <string>
 
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
 
-StateFleetBase::StateFleetBase(Model& model, ros::NodeHandle& nh):
+StateFleetBase::StateFleetBase(Model* model):
     model_(model),
-    nh_(nh),
+    nh_(model->nodeHandle()),
     prvNh_("~")
 {
   std::string topicStateMachineStat;
   prvNh_.param<std::string>("topic_state_machine_stat", topicStateMachineStat, "state_machine_stat");
-  pubStateMachineStat_ = nh_.advertise<kobuki_fleet_msgs::StateMachineStat>(topicStateMachineStat, 1);
+  pubStateMachineStat_ = nh_->advertise<kobuki_fleet_msgs::StateMachineStat>(topicStateMachineStat, 1);
 }
 
 StateFleetBase::~StateFleetBase()
@@ -42,5 +38,3 @@ void StateFleetBase::publishStateStat(void)
   kobuki_fleet_msgs::StateMachineStat stat = this->state();
   pubStateMachineStat_.publish(stat);
 }
-
-} /* namespace bobbyrob */

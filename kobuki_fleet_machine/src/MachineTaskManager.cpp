@@ -22,14 +22,15 @@ MachineTaskManager::MachineTaskManager():
 
   double dVarX = 0;
   double dVarY = 0;
-  int wsId;
+  int materialType;
   std::string topicPublishNewTaskService;
   std::string topicNewTask;
   std::string topicMachineTaskInfo;
   std::string topicBiddingService;
   std::string topicTaskStatusService;
 
-  prvNh.param<int>("machine_id", wsId, 1);
+  prvNh.param<int>("machine_id", wsId_, 1);
+  prvNh.param<int>("material_type", materialType, 1);
   prvNh.param<double>("ws_pose_x", dVarX, 1.0);
   prvNh.param<double>("ws_pose_y", dVarY, 1.0);
   prvNh.param<std::string>("topic_create_new_task_server", topicPublishNewTaskService, "/createNewTaskServer");
@@ -39,20 +40,21 @@ MachineTaskManager::MachineTaskManager():
   prvNh.param<std::string>("topic_bidding", topicBiddingService, "/bidding_ws_");
   prvNh.param<std::string>("topic_task_status", topicTaskStatusService, "/task_status_ws_");
 
-  newTask_.newTask.position.x = dVarX;
-  newTask_.newTask.position.y = dVarY;
-  newTask_.newTask.orientation.w = 1;
   newTask_.header.frame_id = "map";
-  newTask_.tid = wsId;
-  newTask_.task_status = 9;//initialization on a false value
+  std::string machineFileName ("MA" + std::to_string(wsId_));
+  newTask_.machineName = machineFileName;
+  newTask_.taskType = 1;//later should come together with the sendNewTask service call
+  newTask_.tid = wsId_;
+  newTask_.materialType = materialType;
+  newTask_.taskStatus = 99;//initialization on a false value
 
-  task_.task =  newTask_.newTask;
-//  task_.task.position.x = dVarX;
-//  task_.task.position.y = dVarY;
-//  task_.task.orientation.w = 1;
+  //in the future by using the inventory
+  task_.machinePose.position.x = dVarX;
+  task_.machinePose.position.y = dVarY;
+  task_.machinePose.orientation.w = 1;
   task_.header.frame_id = newTask_.header.frame_id;
   task_.tid = newTask_.tid;
-  task_.task_status = 9;//initialization on a false value
+  task_.taskStatus = 99;//initialization on a false value
 
   //  topicBiddingService = (topicBiddingService + std::to_string(wsId));
   newTaskPub_ = nh_.advertise<kobuki_fleet_msgs::NewTask>(topicNewTask, 1);
@@ -79,30 +81,35 @@ bool MachineTaskManager::receiveBiddingsServer(kobuki_fleet_msgs::BiddingOffer::
   //check if it is a new bidding for the current task
   for (auto it=biddingList_.begin(); it!=biddingList_.end(); ++it)
   {
-    if (req.bidd.newTask.tid != newTask_.tid)
+    if (req.bidd.tid != newTask_.tid)
     {
-      ROS_ERROR_STREAM("bidden task is not available in this machine!");
-      return false;
+      ROS_WARN_STREAM("Machine " <<  wsId_ << ". Bidded task is not available in this machine!");
+      res.success = false;
+      return true;
     }
     else if (it->rid == req.bidd.rid)
     {
       if (req.cancelOffer)
       {
-        ROS_WARN_STREAM("The bidding for robot " << it->rid << " has been canceled!!");
+        ROS_INFO_STREAM("Machine " <<  wsId_ << ". The bidding for robot " << it->rid << " has been canceled. (not implemented!!)");
+        res.success = true;
         return true;
       }
       else
       {
-        ROS_WARN_STREAM("The bidding for robot " << it->rid << " was already added!!");
-        return false;
+        ROS_WARN_STREAM("Machine " <<  wsId_ << ". The bidding for robot " << it->rid << " was already added!!");
+        res.success = false;
+        return true;
       }
     }
   }
 
-  ROS_INFO_STREAM("Received new bidding from robot: "  << req.bidd.rid << "  with a cost of: " << req.bidd.cost);
+  ROS_INFO_STREAM("Machine " <<  wsId_ << ". Received new bidding from robot: "  << req.bidd.rid << "  with a cost of: " << req.bidd.cost);
 
   //add the new bidding to the list
+  kobuki_fleet_msgs::Bidding bidd;
   biddingList_.push_back(req.bidd);
+  res.success = true;
   return true;
 }
 
@@ -115,26 +122,26 @@ bool MachineTaskManager::taskStatusServer(kobuki_fleet_msgs::TaskStatus::Request
     if(req.action == req.SET)
     {
       //add a comparation if they are the same?
-      newTask_.task_status = req.task_status;
-      task_.task_status = req.task_status;
-      int status = req.task_status;
-      ROS_INFO_STREAM(__PRETTY_FUNCTION__  <<  " New task status: " << status);
+      newTask_.taskStatus = req.taskStatus;
+      task_.taskStatus = req.taskStatus;
+      int status = req.taskStatus;
+//      ROS_INFO_STREAM("Machine " <<  wsId_ << ".  New task status: " << status);
       return true;
     }
     else if (req.action == req.GET)
     {
-      res.task_status = newTask_.task_status;
+      res.taskStatus = newTask_.taskStatus;
       return true;
     }
     else
     {
-      ROS_ERROR_STREAM(__PRETTY_FUNCTION__ << "incorrect action type. req.action: " << req.action);
+      ROS_ERROR_STREAM("Machine " <<  wsId_ << ". Incorrect action type. req.action: " << req.action);
       return false;
     }
   }
   else
   {
-    ROS_ERROR_STREAM(__PRETTY_FUNCTION__ << "incorrect task id. req.tid: " << req.tid);
+    ROS_ERROR_STREAM("Machine " <<  wsId_ << ". Incorrect task id. req.tid: " << req.tid);
     return false;
   }
 }
@@ -142,48 +149,55 @@ bool MachineTaskManager::taskStatusServer(kobuki_fleet_msgs::TaskStatus::Request
 void MachineTaskManager::decisionBiddingCallback(const ros::TimerEvent& event)
 {
   publishNewTask_ = false;
-  ROS_INFO_STREAM(__PRETTY_FUNCTION__  <<  "A decision will be taken. stop offering the task");
+  ROS_INFO_STREAM("Machine " <<  wsId_ << ". A decision will be taken. stop offering the task");
 
   if (!biddingList_.size())
   {
     ROS_INFO("No offer received. return");
     return;
   }
-  int primaryID = 999;
+  int primaryID = 99;
 
   //code to take a decision and assign the Primary and Secondary robots to the task:
   biddingList_.sort(compare_costs);
+//  for(
+//		  std::list<kobuki_fleet_msgs::Bidding>::iterator listMyClassIter = biddingList_.begin();
+//      listMyClassIter != biddingList_.end();
+//      listMyClassIter ++)
+//  {
+//	  ROS_INFO_STREAM("robotId: "  << listMyClassIter->rid << " cost: " << listMyClassIter->cost);
+//  }
+
   //biddingListCopy for the secondary task assignment
   std::list<kobuki_fleet_msgs::Bidding> tmpBiddingList = biddingList_;
 
   //Modify it to fulfill a Task type an not a newTask type.
   kobuki_fleet_msgs::AssignTask srv;
-  srv.request.task.header = newTask_.header;
-  srv.request.task.tid = newTask_.tid;
-  srv.request.task.task = newTask_.newTask;
-  srv.request.task.task_status = srv.request.task.OPEN;
-  srv.request.task.rid1 = 999;
-  srv.request.task.rid2 = 999;
+  srv.request.header = newTask_.header;
+  srv.request.tid = newTask_.tid;
+  srv.request.taskStatus = srv.request.OPEN;
+  srv.request.rid1 = 99;
+  srv.request.rid2 = 99;
   srv.request.taskType = srv.request.PRIMARY;
   std::string topic;
 
-  task_.rid1 = 999;
-  task_.rid2 = 999;
+  task_.rid1 = 99;
+  task_.rid2 = 99;
 
   //NoteJon:add a waitForService??
   //if size==1n the call will be done anyway because it is before
   while(biddingList_.size())
   {
-    srv.request.task.rid1 = biddingList_.front().rid;
+    srv.request.rid1 = biddingList_.front().rid;
     topic = asignTaskTopic_ + std::to_string(biddingList_.front().rid);
     sendAssignedTaskClient_ = nh_.serviceClient<kobuki_fleet_msgs::AssignTask>(topic);
     //ROS_INFO_STREAM(" PRYMARY assignment topic: " << topic);
     if(sendAssignedTaskClient_.call(srv))
     {
       primaryID = biddingList_.front().rid;
-      ROS_INFO_STREAM(" PRYMARY task " << newTask_.tid << " assigned to robot: " << primaryID);
+      ROS_INFO_STREAM("Machine" <<  wsId_ << ".  PRYMARY task " << newTask_.tid << " assigned to robot: " << primaryID);
       //save the changes in the task_
-      task_.rid1 = biddingList_.front().rid;
+      task_.rid1 = primaryID;
 
       //start the action server:
       /*kobuki_fleet_msgs::ManagerTaskGoal goal;
@@ -197,11 +211,11 @@ void MachineTaskManager::decisionBiddingCallback(const ros::TimerEvent& event)
   }
 
   if (!biddingList_.size())
-    ROS_ERROR_STREAM("not possible to assign PRIMARY task to any robot");
+    ROS_ERROR_STREAM("Machine " <<  wsId_ << ". not possible to assign PRIMARY task to any robot");
 
   //Assign the secondary robot
   srv.request.taskType = srv.request.SECONDARY;
-  srv.request.task.rid1 = primaryID;
+  srv.request.rid1 = primaryID;
   while(tmpBiddingList.size())
   {
     if (tmpBiddingList.front().rid == primaryID)
@@ -209,13 +223,13 @@ void MachineTaskManager::decisionBiddingCallback(const ros::TimerEvent& event)
       tmpBiddingList.pop_front();
       continue;
     }
-    srv.request.task.rid2 = tmpBiddingList.front().rid;
+    srv.request.rid2 = tmpBiddingList.front().rid;
     topic = asignTaskTopic_ + std::to_string(tmpBiddingList.front().rid);
     //ROS_INFO_STREAM(" SECONDARY assignment topic: " << topic);
     sendAssignedTaskClient_ = nh_.serviceClient<kobuki_fleet_msgs::AssignTask>(topic);
     if(sendAssignedTaskClient_.call(srv))
     {
-      ROS_INFO_STREAM(" SECONDARY task " << newTask_.tid << " assigned to robot: " << tmpBiddingList.front().rid);
+      ROS_INFO_STREAM("Machine " <<  wsId_ << ".  SECONDARY task " << newTask_.tid << " assigned to robot: " << tmpBiddingList.front().rid);
       task_.rid2 = tmpBiddingList.front().rid;
       break;
     }
@@ -224,7 +238,7 @@ void MachineTaskManager::decisionBiddingCallback(const ros::TimerEvent& event)
   }
 
   if (!tmpBiddingList.size())
-    ROS_ERROR_STREAM("not possible to assign SECONDARY task to any robot");
+    ROS_ERROR_STREAM("Machine " <<  wsId_ << ". not possible to assign SECONDARY task to any robot");
   //  else
   //    ROS_INFO_STREAM(__PRETTY_FUNCTION__  << " a decision has been taken. SECONDARY elected robot: " << tmpBiddingList.front().rid );
 
@@ -235,17 +249,17 @@ bool MachineTaskManager::pubishNewTaskServiceCallback(std_srvs::Empty::Request  
 {
   biddingList_.clear();
   newTask_.header.stamp = ros::Time::now();
-  newTask_.task_status = newTask_.OPEN;
+  newTask_.taskStatus = newTask_.OPEN;
 
   task_.header.stamp = ros::Time::now();
-  task_.task_status = task_.OPEN;
+  task_.taskStatus = task_.OPEN;
 
   //Note: period by parameter in the future
-  timer1_ = nh_.createTimer(ros::Duration(2), &MachineTaskManager::decisionBiddingCallback, this, true);
+  timer1_ = nh_.createTimer(ros::Duration(10), &MachineTaskManager::decisionBiddingCallback, this, true);
   //activate the timer and publish the newTask until the timer is over.
   publishNewTask_ = true;
 
-  ROS_INFO_STREAM(__PRETTY_FUNCTION__  << " start publishing a new task!");
+  ROS_INFO_STREAM("Machine " <<  wsId_ << ". Start publishing a new task!");
 
   return true;
 }

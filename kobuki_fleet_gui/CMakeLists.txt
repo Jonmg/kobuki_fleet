@@ -10,8 +10,12 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   kobuki_fleet_msgs
+  kobuki_fleet_neocortec
 )
 
+FIND_PACKAGE(Qt4 REQUIRED)
+INCLUDE(${QT_USE_FILE})
+ADD_DEFINITIONS(${QT_DEFINITIONS})  
 SET(CMAKE_BUILD_TYPE RELEASE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -std=c++11")
 
@@ -107,9 +111,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -std=c++11")
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES kobuki_fleet_gui
-#  CATKIN_DEPENDS geometry_msgs roscpp std_msgs tf
+   CATKIN_DEPENDS geometry_msgs roscpp std_msgs tf
 #  DEPENDS system_lib
 )
+
+
 
 ###########
 ## Build ##
@@ -120,6 +126,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 ## Declare a C++ library
@@ -127,23 +134,39 @@ include_directories(
 #   src/${PROJECT_NAME}/kobuki_fleet_gui.cpp
 # )
 
+add_library(kobuki_fleet_gui SHARED
+    src/start_gui.cpp
+    src/DisplayGUI.cpp
+    src/RvizGUI.cpp
+)
+
+set(GUI_HEADERS src/DisplayGUI.h)
+set(GUI_HUD_FORMS src/DisplayGUI.ui)
+QT4_WRAP_UI(GUI_HUD_FORMS_HEADERS ${GUI_HUD_FORMS})
+QT4_WRAP_CPP(GUI_HEADERS_MOC ${GUI_HEADERS})
+QT4_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 
 
 ## Declare a C++ executable
-add_executable(gui_node src/gui_subscriber.cpp)
+#add_executable(gui_node src/gui_subscriber.cpp)
+add_executable(start_gui src/start_gui.cpp src/DisplayGUI.cpp ${RES_SOURCES} ${GUI_HUD_FORMS_HEADERS} ${GUI_HEADERS_MOC})
+add_executable(rviz_gui_node src/start_RvizGUI.cpp src/RvizGUI.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(gui_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(rviz_gui_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(gui_node
+target_link_libraries(rviz_gui_node
  	${catkin_LIBRARIES}
 )
-
+target_link_libraries(start_gui
+ 	${catkin_LIBRARIES}
+ 	${QT_LIBRARIES}
+)
 #############
 ## Install ##
 #############

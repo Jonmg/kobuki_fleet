@@ -19,11 +19,13 @@
 #include <ros/node_handle.h>
 #include <ros/publisher.h>
 #include <ros/rate.h>
+#include "ros/ros.h"
 #include <ros/subscriber.h>
 #include <ros/time.h>
 #include <rosconsole/macros_generated.h>
 #include <std_msgs/ColorRGBA.h>
 #include <std_msgs/Header.h>
+#include <std_srvs/Empty.h>
 #include <unistd.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -37,6 +39,10 @@
 #include "kobuki_fleet_msgs/HeartBeat.h"
 #include "kobuki_fleet_msgs/HeartBeatList.h"
 #include <resource_retriever/retriever.h>
+
+#include <QApplication>
+#include "DisplayGUI.h"
+#include <QDebug>
 
 ros::Duration removeMarkerDuration(30.0);
 ros::Duration disconectionDuration(10.0);
@@ -68,18 +74,34 @@ void callBackHeartBeat(const kobuki_fleet_msgs::HeartBeatConstPtr& msg);
 void callBackMachineBackHeartBeat(const kobuki_fleet_msgs::TaskConstPtr& msg);
 
 
+bool printInformation(std_srvs::Empty::Request  &req, std_srvs::Empty::Response &res);
+
 kobuki_fleet_msgs::TaskList g_tasklist;  //global
+kobuki_fleet_msgs::TaskList h_tasklist;	//history of tasks
 kobuki_fleet_msgs::HeartBeatList g_heartbeatlist;  //global
+kobuki_fleet_msgs::HeartBeatList h_heartbeatlist;  //history of heartbeats
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "gui_subscriber");
+  /*
+  QApplication app(argc, argv);
+  qDebug() << " constructor";
+  Display_GUI w;// = new DisplayGUI();
+  qDebug() << " show";
+  w.show();
+  qDebug() << " exec";
+
+  return app.exec();
+  */
+
   ros::NodeHandle n;
   ros::Rate r(0.5);
   ros::Subscriber sub1 = n.subscribe("machineHB", 10, callBackMachineBackHeartBeat);
   //ros::Subscriber sub2 = n.subscribe("/heartbeat_list_robot_1", 1, callBackHeartBeatList);
   ros::Subscriber sub3 = n.subscribe("/HB", 10, callBackHeartBeat);
   ros::Publisher pubMarkerArray = n.advertise<visualization_msgs::MarkerArray>("markers", 30);
+  ros::ServiceServer service = n.advertiseService("print_taskinfo", printInformation);
 
   visualization_msgs::MarkerArray tasks_marker_array;
   visualization_msgs::MarkerArray robots_marker_array;
@@ -292,7 +314,6 @@ int main(int argc, char **argv)
     pubMarkerArray.publish(robots_marker_array);
     r.sleep();
   }   //ros while ok loop
-  ros::spin();
   return 0;
 }
 
@@ -316,13 +337,14 @@ void callBackHeartBeat(const kobuki_fleet_msgs::HeartBeatConstPtr& msg)
 {
   ros::Time now = ros::Time::now();
 
-  ROS_INFO("Received HeartBeat from robot id %d", msg->rid);
+  //ROS_INFO("Received HeartBeat from robot id %d", msg->rid);
 
   // search for multible heartbeats and keep just the new one
   for (unsigned int i = 0; i < g_heartbeatlist.heartBeatList.size(); i++)
   {
     if (now - g_heartbeatlist.heartBeatList[i].header.stamp >= removeMarkerDuration)
     {
+
       g_heartbeatlist.heartBeatList.erase(g_heartbeatlist.heartBeatList.begin() + i);
       //g_heartbeatlist.heartBeatList[i].rob_status = kobuki_fleet_msgs::HeartBeat::DISCONNECTED;
     }
@@ -350,7 +372,9 @@ void callBackMachineBackHeartBeat(const kobuki_fleet_msgs::TaskConstPtr& msg)
 {
   ros::Time now = ros::Time::now();
 
-  ROS_INFO("Received HeartBeat from Machine id %d", msg->tid);
+  //ROS_INFO("Received HeartBeat from Machine id %d", msg->tid);
+
+  bool task_found = false;
 
   // search for multible heartbeats and keep just the new one
   for (unsigned int i = 0; i < g_tasklist.tasks.size(); i++)
@@ -369,4 +393,326 @@ void callBackMachineBackHeartBeat(const kobuki_fleet_msgs::TaskConstPtr& msg)
 
   g_tasklist.tasks.push_back(*msg);
   g_tasklist.tasks.back().header.stamp = now; // reset timestamp to avoid timesync problems
+
+  for (unsigned int j = 0; j < h_tasklist.tasks.size(); j++)
+  {
+	  if (h_tasklist.tasks[j].header.stamp == msg->header.stamp && h_tasklist.tasks[j].tid == msg->tid)
+	  {
+		  h_tasklist.tasks[j].task_status = msg->task_status;
+		  h_tasklist.tasks[j].rid1 = msg->rid1;
+		  h_tasklist.tasks[j].rid2 = msg->rid2;
+		  task_found = true;
+		  break;
+	  }
+  }
+
+  if (task_found == false)
+  {
+	  h_tasklist.tasks.push_back(*msg);
+  }
+
+}
+
+bool printInformation(std_srvs::Empty::Request  &req,
+    std_srvs::Empty::Response &res)
+{
+	int machine_tasks [9] = {0};
+	int mach_tasks_status [9][4] = {{0},{0},{0},{0}};
+	int primary_robot_tasks [6] = {0};
+	int secondary_robot_tasks [6] = {0};
+	int total_mach_tasks = 0;
+	int open_tasks = 0, working_tasks = 0, finished_tasks = 0, failed_tasks = 0;
+
+	std::cout << std::endl << "Taskhistory:" << std::endl << std::endl;
+	for (unsigned int k = 0; k < h_tasklist.tasks.size(); k++)
+	{
+		if (h_tasklist.tasks[k].task_status == 9)
+		{
+			ROS_INFO_STREAM("Initialization task");
+		}
+		ROS_INFO_STREAM("Task-ID: " << h_tasklist.tasks[k].tid << " Timestamp: "<< h_tasklist.tasks[k].header.stamp);
+		//ROS_INFO_STREAM("Task-Status: " << std::to_string(h_tasklist.tasks[k].task_status));
+		switch (h_tasklist.tasks[k].task_status)
+		{
+		case 0:
+			ROS_INFO_STREAM("Task-Status: open");
+			break;
+		case 1:
+			ROS_INFO_STREAM("Task-Status: working");
+			break;
+		case 2:
+			ROS_INFO_STREAM("Task-Status: finished");
+			break;
+		case 3:
+			ROS_INFO_STREAM("Task-Status: ERROR");
+			break;
+		default:
+			break;
+		}
+		ROS_INFO_STREAM("Primary Robot: " << h_tasklist.tasks[k].rid1 << " Secondary Robot: " << h_tasklist.tasks[k].rid2);
+		std::cout << std::endl;
+
+		if (h_tasklist.tasks[k].task_status != 9)
+		{
+			switch (h_tasklist.tasks[k].tid)
+			{
+			case 1:
+				switch (h_tasklist.tasks[k].task_status)
+				{
+				case 0:
+					mach_tasks_status [0][0]++;
+					break;
+				case 1:
+					mach_tasks_status [0][1]++;
+					break;
+				case 2:
+					mach_tasks_status [0][2]++;
+					break;
+				case 3:
+					mach_tasks_status [0][3]++;
+					break;
+				}
+				break;
+			case 2:
+				switch (h_tasklist.tasks[k].task_status)
+				{
+				case 0:
+					mach_tasks_status [1][0]++;
+					break;
+				case 1:
+					mach_tasks_status [1][1]++;
+					break;
+				case 2:
+					mach_tasks_status [1][2]++;
+					break;
+				case 3:
+					mach_tasks_status [1][3]++;
+					break;
+				}
+				break;
+			case 3:
+				switch (h_tasklist.tasks[k].task_status)
+				{
+				case 0:
+					mach_tasks_status [2][0]++;
+					break;
+				case 1:
+					mach_tasks_status [2][1]++;
+					break;
+				case 2:
+					mach_tasks_status [2][2]++;
+					break;
+				case 3:
+					mach_tasks_status [2][3]++;
+					break;
+				}
+				break;
+			case 4:
+				switch (h_tasklist.tasks[k].task_status)
+				{
+				case 0:
+					mach_tasks_status [3][0]++;
+					break;
+				case 1:
+					mach_tasks_status [3][1]++;
+					break;
+				case 2:
+					mach_tasks_status [3][2]++;
+					break;
+				case 3:
+					mach_tasks_status [3][3]++;
+					break;
+				}
+				break;
+			case 5:
+				switch (h_tasklist.tasks[k].task_status)
+				{
+				case 0:
+					mach_tasks_status [4][0]++;
+					break;
+				case 1:
+					mach_tasks_status [4][1]++;
+					break;
+				case 2:
+					mach_tasks_status [4][2]++;
+					break;
+				case 3:
+					mach_tasks_status [4][3]++;
+					break;
+				}
+				break;
+			case 6:
+				switch (h_tasklist.tasks[k].task_status)
+				{
+				case 0:
+					mach_tasks_status [5][0]++;
+					break;
+				case 1:
+					mach_tasks_status [5][1]++;
+					break;
+				case 2:
+					mach_tasks_status [5][2]++;
+					break;
+				case 3:
+					mach_tasks_status [5][3]++;
+					break;
+				}
+				break;
+			case 7:
+				switch (h_tasklist.tasks[k].task_status)
+				{
+				case 0:
+					mach_tasks_status [6][0]++;
+					break;
+				case 1:
+					mach_tasks_status [6][1]++;
+					break;
+				case 2:
+					mach_tasks_status [6][2]++;
+					break;
+				case 3:
+					mach_tasks_status [6][3]++;
+					break;
+				}
+				break;
+			case 8:
+				switch (h_tasklist.tasks[k].task_status)
+				{
+				case 0:
+					mach_tasks_status [7][0]++;
+					break;
+				case 1:
+					mach_tasks_status [7][1]++;
+					break;
+				case 2:
+					mach_tasks_status [7][2]++;
+					break;
+				case 3:
+					mach_tasks_status [7][3]++;
+					break;
+				}
+				break;
+			case 9:
+				switch (h_tasklist.tasks[k].task_status)
+				{
+				case 0:
+					mach_tasks_status [8][0]++;
+					break;
+				case 1:
+					mach_tasks_status [8][1]++;
+					break;
+				case 2:
+					mach_tasks_status [8][2]++;
+					break;
+				case 3:
+					mach_tasks_status [8][3]++;
+					break;
+				}
+				break;
+			default:
+				break;
+			}
+
+			switch (h_tasklist.tasks[k].rid1)
+			{
+			case 0:
+				primary_robot_tasks[0]++;
+				break;
+			case 1:
+				primary_robot_tasks[1]++;
+				break;
+			case 2:
+				primary_robot_tasks[2]++;
+				break;
+			case 3:
+				primary_robot_tasks[3]++;
+				break;
+			case 4:
+				primary_robot_tasks[4]++;
+				break;
+			case 5:
+				primary_robot_tasks[5]++;
+				break;
+			default:
+				break;
+			}
+
+			switch (h_tasklist.tasks[k].rid2)
+			{
+			case 0:
+				secondary_robot_tasks[0]++;
+				break;
+			case 1:
+				secondary_robot_tasks[1]++;
+				break;
+			case 2:
+				secondary_robot_tasks[2]++;
+				break;
+			case 3:
+				secondary_robot_tasks[3]++;
+				break;
+			case 4:
+				secondary_robot_tasks[4]++;
+				break;
+			case 5:
+				secondary_robot_tasks[5]++;
+				break;
+			default:
+				break;
+			}
+
+			switch (h_tasklist.tasks[k].task_status)
+			{
+			case 0:
+				open_tasks++;
+				break;
+			case 1:
+				working_tasks++;
+				break;
+			case 2:
+				finished_tasks++;
+				break;
+			case 3:
+				failed_tasks++;
+				break;
+			default:
+				break;
+			}
+		} 			//end-if
+	} 				//end-for
+
+	for (int i = 0; i < 9; i++)
+	{
+		for (int j=0; j<4; j++)
+		{
+			total_mach_tasks = total_mach_tasks + mach_tasks_status [i][j];
+		}
+	}				//counting the total number of tasks
+
+	std::cout << "Statistics:" << std::endl << std::endl;
+
+	std::cout << "Total number of tasks: " << total_mach_tasks << std::endl;
+	std::cout << "Total number of open tasks: " << open_tasks << std::endl;
+	std::cout << "Total number of working tasks: " << working_tasks << std::endl;
+	std::cout << "Total number of finished tasks: " << finished_tasks << std::endl;
+	std::cout << "Total number of failed tasks: " << failed_tasks << std:: endl << std::endl;
+
+	for (int i=0; i<9; i++)
+	{
+		std::cout << "Machine " << i+1 << ":" << std::endl;
+		std::cout << "open: " << mach_tasks_status[i][0] << std::endl;
+		std::cout << "working: " << mach_tasks_status[i][1] << std::endl;
+		std::cout << "finished: " << mach_tasks_status[i][2] << std::endl;
+		std::cout << "failed: " << mach_tasks_status[i][3] << std::endl;
+		std::cout << std::endl;
+	}
+
+	for (int j = 0; j < 6; j++)
+	{
+		std::cout << "Robot " << j << ":" << std::endl;
+		std::cout << "Primary tasks: " << primary_robot_tasks[j] << " Secondary tasks: " << secondary_robot_tasks[j] << std::endl;
+	}
+	std::cout << std::endl;
+
+	return true;
 }

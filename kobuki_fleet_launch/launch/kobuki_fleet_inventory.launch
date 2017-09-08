@@ -1,0 +1,15 @@
+<launch>
+
+  <node pkg="kobuki_fleet_inventory" type="kobuki_fleet_inventory_node" name="kobuki_fleet_inventory" clear_params="true" output="screen">
+  
+  	<param name="xTFOffset" type="double" value="0.2" />
+  	<param name="yTFOffset" type="double" value="-0.5" />
+  	<param name="mapFrame" value="/map" />
+  	<param name="clusterPrefix" value="C_" />
+  	<param name="TFclusterOnOff" type="bool" value="false" />
+  	<param name="rosRate" type="double" value="30" />
+    <param name="packageName" value="kobuki_fleet_inventory" />
+  </node>
+
+
+</launch>

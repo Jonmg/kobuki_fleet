@@ -1,0 +1,12 @@
+string subTasktType
+string serviceArea
+uint8 poseOrientation
+float32 serviceAreaHigh
+geometry_msgs/Pose poseNew
+geometry_msgs/Point pose
+duration waitingTime
+string objectType
+uint8 objectId
+uint8 object2
+uint8 object3
+uint8 containerId

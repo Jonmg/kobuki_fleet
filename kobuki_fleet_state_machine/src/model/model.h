@@ -1,8 +1,8 @@
 /*
  * model.h
  *
- *  Created on: Aug 2, 2016
- *      Author: phil
+ *  Created on: Aug 30, 2016
+ *      Author: Jon Martin
  */
 
 
@@ -16,32 +16,31 @@
 
 #include <ros/ros.h>
 #include <std_msgs/UInt16.h>
-#include <move_base_msgs/MoveBaseAction.h>
-#include <actionlib/client/simple_action_client.h>
+#include <std_msgs/UInt8.h>
+#include <kobuki_fleet_msgs/Task.h>
+#include "kobuki_fleet_msgs/SubTask.h"
+#include "kobuki_fleet_msgs/SubTaskVector.h"
 
-#include "obcore/statemachine/AgentModel.h"
+#include "Agent.h"
 
-#include "controller_tasks.h"
-#include "controller_heartbeat_list.h"
+#include "kobuki_fleet_msgs/LocationIdentifier.h"
 
 /**
- * @namespace bobbyrob
+ * @enum TaskOrder
+ * @brief Enumeration type for order of tasks
  */
-namespace bobbyrob
+enum TaskOrder
 {
-
-namespace
-{
-  const unsigned int TRIES_REACH_MV_BS = 2; ///maximum tries to reach move base server before going into error
-  const double TIME_OUT_MV_BS = 2.0;        ///maximum time span for a waiting loop for move base
-}
+  PRIMARY = 1,//!< PRIMARY
+  SECONDARY = 2  //!< SECONDARY
+};
 
 /**
  * @class Model
  * @brief Data container for state machine
  * Class used as a data exchange container used by all states.
  */
-class Model : public obvious::AgentModel
+class Model
 {
 public:
   /**
@@ -49,49 +48,78 @@ public:
    * @param robotId unique id of the robot within the robot fleet
    * @param nh reference to main node handle of the state machine
    */
-  Model(const std_msgs::UInt16& robotId, ros::NodeHandle& nh);
+  Model(const std_msgs::UInt16& robotId, ros::NodeHandle* nh);
   /**
    * Destructor
    */
   virtual ~Model();
-  /**
-   * @brief Getter. Get reference to controller of task list
-   * @return ControllerTasklist reference to the task list controller instance
-   * Method used to access the task list controller class.
-   */
-  ControllerTasks& controllerTasks(void){return *controllerTasks_;}
-  /**
-   * @brief Getter. Get reference to controller of heartbeat list
-   * @return ControllerHeartBeatList reference to the heart beat list controller instance
-   * Method used to access the heart beat list controller
-   */
-  ControllerHeartbeatList& controllerHeartBeatList(void){return *controllerHeartBeatList_;}
+
   /**
    * @brief Getter. Get robotId
    * @return std_mgs::UInt16 reference to the robot id
    */
   const std_msgs::UInt16& robotId(void)const{return robotId_;}
 
-  const kobuki_fleet_msgs::Task* const curTask(void)const{return curTask_;}
+  kobuki_fleet_msgs::Task const curTask(void)const;
 
-  void setCurentTask(const kobuki_fleet_msgs::Task& curTask){curTask_ = &curTask;}
-
-  actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>* moveBaseClient(void){return moveBaseClient_;}
+  bool setCurentTask(kobuki_fleet_msgs::Task curTask);
   
   void setSimulation(bool simulation){simulation_= simulation;}
   
   bool checkSimulation(void){return simulation_;}
 
-  bool setUpMoveBase(void);
-private:
-  ControllerTasks* controllerTasks_;  ///< instance of task list controller
-  ControllerHeartbeatList* controllerHeartBeatList_; ///instance of heart beat list controller
-  const std_msgs::UInt16 robotId_;          ///< unique robot id
-  const kobuki_fleet_msgs::Task* curTask_;
-  actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>* moveBaseClient_;  ///< ROS move base client object
-  bool simulation_;
-};
+//  bool setUpMoveBase(void);
 
-} /* namespace bobbyrob */
+  ros::NodeHandle* const nodeHandle(void)const{return nh_;}
+
+  /**
+   * set inventory locations.
+   * @param inventoyLocations
+   */
+  void setInventorySources(const kobuki_fleet_msgs::LocationIdentifier inventoyLocations);
+
+  /**
+   * Get inventory locations.
+   * @param inventoyLocations
+   * @return success
+   */
+  bool getInventorySources(kobuki_fleet_msgs::LocationIdentifier& inventoryLocations);
+
+  /**
+     * set subTasks.
+     * @param SubTaskVector
+     */
+  void addSubTasks(const kobuki_fleet_msgs::SubTaskVector SubTaskVector);
+
+  /**
+   * Get subTasks.
+   * @param SubTaskVector
+   * @return success
+   */
+  bool getSubTasks(kobuki_fleet_msgs::SubTaskVector& SubTaskVector);
+
+  /**
+   * Set the Actual subTask
+   */
+  void setActualSubTask(kobuki_fleet_msgs::SubTask actualSubTask);
+
+  /**
+   * Get the Actual subTask
+   */
+  void getActualSubTask(kobuki_fleet_msgs::SubTask& actualSubTask);
+
+
+
+private:
+  ros::NodeHandle* const nh_;
+
+  const std_msgs::UInt16 robotId_;          ///< unique robot id
+  kobuki_fleet_msgs::Task curTask_;
+  kobuki_fleet_msgs::LocationIdentifier inventoyLocations_;
+  bool simulation_;
+  kobuki_fleet_msgs::SubTaskVector _subTaskVector;
+  kobuki_fleet_msgs::SubTask _actualSubTask;
+
+};
 
 #endif /* SRC_STATE_MACHINE_MODEL_MODEL_H_ */

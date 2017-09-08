@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>kobuki_fleet</name>
+  <version>0.2.0</version>
+  <description>bla bla</description>
+
+  <maintainer email="scholzto52032@th-nuernberg.de">adfasd </maintainer>
+
+  <license>LGPLv3</license>
+  <url type="website">http://wiki.ros.org/ros_opcua_communication</url>
+  <url type="repository">https://github.com/iirob/ros_opcua_communication</url>
+  <url type="bugtracker">https://github.com/iirob/ros_opcua_communication/issues</url>
+
+  <author email="scholzto52032@th-nuernberg.de">Tobias Scholz</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>kobuki_fleet_inventory</exec_depend>
+  <exec_depend>kobuki_fleet_launch</exec_depend>
+  <exec_depend>kobuki_fleet_machine</exec_depend>
+  <exec_depend>kobuki_fleet_msgs</exec_depend>
+  <exec_depend>kobuki_fleet_neocortec</exec_depend>
+  <exec_depend>kobuki_fleet_snapshot</exec_depend>
+  <exec_depend>kobuki_fleet_state_machine</exec_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>

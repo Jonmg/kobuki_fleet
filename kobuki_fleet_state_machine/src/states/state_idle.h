@@ -3,6 +3,7 @@
  *
  *  Created on: Aug 1, 2016
  *      Author: phil
+ *      Author: Jon Martin
  */
 
 /**
@@ -18,12 +19,7 @@
 #include "state_fleet_base.h"
 #include "kobuki_fleet_msgs/TaskList.h"
 #include <kobuki_fleet_msgs/TaskStatus.h>
-
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
+#include "kobuki_fleet_msgs/SubTaskVector.h"
 
 /**
  * @class StateIdle
@@ -38,7 +34,7 @@ public:
    * @param model bobbyrob::Model reference to the shared data container
    * @param nh ros::NodeHandle reference to the shared main node hanlde of the state machine node
    */
-  StateIdle(Model& model, ros::NodeHandle& nh);
+  StateIdle(Model* const model);
   /**
    * Destructor
    */
@@ -61,10 +57,10 @@ private:
    */
   void callBackTaskList(const kobuki_fleet_msgs::TaskList& msg);
   ros::Subscriber subsTaskList_;   /// ROS subscriber object
-  ros::ServiceClient taskStatusClient_; ///Topic to read or set a taskStatus on the machine
+  ros::ServiceClient getCurrentSubTaskClient_;
+  ros::ServiceClient settaskStatusClient_;
 
   std::string topicTaskStatus_;
 };
 
-}
 #endif /* ROS_SRC_KOB_SM_SRC_STATES_STATE_IDLE_H_ */

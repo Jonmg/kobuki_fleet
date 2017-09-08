@@ -17,8 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
 SET(CMAKE_BUILD_TYPE RELEASE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -std=c++11")
 
-INCLUDE_DIRECTORIES($ENV{OBVIOUSLY_ROOT})
-LINK_DIRECTORIES($ENV{OBVIOUSLY_ROOT}/build/release/obcore)
+#INCLUDE_DIRECTORIES($ENV{OBVIOUSLY_ROOT})
+#LINK_DIRECTORIES($ENV{OBVIOUSLY_ROOT}/build/release/obcore)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -140,30 +140,42 @@ include_directories(
 # add_dependencies(kobuki_fleet_state_machine ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(state_machine src/state_machine_main.cpp
+add_executable(state_machine src/model/Agent.cpp 
+                             src/model/model.cpp
+                             #src/model/controller_tasks.cpp
+                             #src/model/controller_task_list.cpp
+                             #src/model/controller_heartbeat_list.cpp 
+                             #src/state_machine/model/task_action_server.cpp
+    
+                             src/state_machine_main.cpp
                              src/state_machine.cpp
+                             
+                             src/states/StateBase.cpp
                              src/states/state_fleet_base.cpp
                              src/states/state_drive.cpp  
                              src/states/state_error.cpp
                              src/states/state_idle.cpp
                              src/states/state_init.cpp
                              src/states/state_next.cpp
-                             src/model/model.cpp
-                             src/model/controller_tasks.cpp
-                             src/model/controller_task_list.cpp
-                             src/model/controller_heartbeat_list.cpp 
-                             #src/state_machine/model/task_action_server.cpp
+                             
 )
+
+add_executable(control_tasks_node 	src/model/controller_tasks.cpp
+								    src/model/controller_tasks_node.cpp
+								    )
+
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(state_machine ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_dependencies(control_tasks_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
 ## Specify libraries to link a library or executable target against
-target_link_libraries(state_machine
-    obcore
-   ${catkin_LIBRARIES}
-)
+target_link_libraries(state_machine  ${catkin_LIBRARIES} )
+
+target_link_libraries(control_tasks_node  ${catkin_LIBRARIES})
 
 #############
 ## Install ##

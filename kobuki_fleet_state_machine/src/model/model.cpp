@@ -1,9 +1,3 @@
-/*
- * model.cpp
- *
- *  Created on: Aug 2, 2016
- *      Author: phil
- */
 
 #include "model.h"
 
@@ -12,52 +6,64 @@
  * @brief contains implementation of class Model
  */
 
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
-
-Model::Model(const std_msgs::UInt16& robotId, ros::NodeHandle& nh):
-      controllerTasks_(new ControllerTasks(nh)),
-      controllerHeartBeatList_(new ControllerHeartbeatList(nh)),
-      robotId_(robotId),
-      curTask_(NULL),
-      moveBaseClient_(NULL),
-      simulation_(0)
+Model::Model(const std_msgs::UInt16& robotId, ros::NodeHandle* nh):
+    nh_(nh),
+    robotId_(robotId),
+    simulation_(0)
 {
 
 }
 
 Model::~Model()
 {
-  delete controllerTasks_;
-  delete controllerHeartBeatList_;
-  delete curTask_;
-  delete moveBaseClient_;
+
 }
 
-bool Model::setUpMoveBase(void)
+kobuki_fleet_msgs::Task const Model::curTask(void) const
 {
-  ros::NodeHandle prvNh("~");
-  std::string topicMoveBaseAction;
-  prvNh.param<std::string>("topic_move_base_action", topicMoveBaseAction, "robot0/move_base");
+//    ROS_INFO_STREAM("returned current task from model function called. CurrentTask.task: " << curTask_.task );
+  return curTask_;
+}
 
-  moveBaseClient_ = new actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>(topicMoveBaseAction, true);
-
-  unsigned int ctr = 0;
-  while(!moveBaseClient_->waitForServer(ros::Duration(TIME_OUT_MV_BS)))
-  {
-    ROS_INFO_STREAM(__PRETTY_FUNCTION__ << " Waiting for the move_base action server " << topicMoveBaseAction << " to come up");
-    if(ctr++ >= TRIES_REACH_MV_BS)
-    {
-      ROS_ERROR_STREAM(__PRETTY_FUNCTION__ << " error! cant reach move base");
-      return false;
-   //   throw std::string("Time out reaching move base");
-      //return;
-    }
-  }
+bool Model::setCurentTask(kobuki_fleet_msgs::Task curTask)
+{
+  curTask_ = curTask;
   return true;
 }
 
-} /* namespace bobbyrob */
+void Model::setInventorySources(const kobuki_fleet_msgs::LocationIdentifier inventoyLocations)
+{
+  inventoyLocations_ = inventoyLocations;
+}
+
+bool Model::getInventorySources(kobuki_fleet_msgs::LocationIdentifier& inventoryLocations)
+{
+  inventoryLocations = inventoyLocations_;
+  return true;
+}
+
+void Model::addSubTasks(const kobuki_fleet_msgs::SubTaskVector subTaskVector)
+{
+  _subTaskVector = subTaskVector;
+}
+
+bool Model::getSubTasks(kobuki_fleet_msgs::SubTaskVector& subTaskVector)
+{
+  if(!_subTaskVector.subtasks.size())
+  {
+    return false;
+  }
+  subTaskVector = _subTaskVector;
+  return true;
+}
+
+void Model::setActualSubTask(kobuki_fleet_msgs::SubTask task)
+{
+  _actualSubTask = task;
+}
+
+void Model::getActualSubTask(kobuki_fleet_msgs::SubTask& task)
+{
+  task = _actualSubTask;
+}
+

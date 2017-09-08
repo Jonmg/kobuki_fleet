@@ -3,6 +3,7 @@
  *
  *  Created on: Aug 1, 2016
  *      Author: phil
+ *      Author: Jon Martin
  */
 
 /**
@@ -17,14 +18,13 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
 
-#include "model/model.h"
 #include "state_fleet_base.h"
 
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
+#include "kobuki_fleet_msgs/getAllInventoryData.h"
+#include "kobuki_fleet_msgs/LocationIdentifier.h"
+
+
+class Model;
 
 /**
  * @class StateInit
@@ -40,11 +40,15 @@ public:
    * @param model Instance of class model used for data handling
    * @param nh ros::NodeHandle reference to main node handle
    */
-  StateInit(Model& model, ros::NodeHandle& nh);
+  StateInit(Model* const model);
   /**
    * Destructor
    */
   virtual ~StateInit();
+
+
+  void onEntry();
+
   /**
    * @brief called by state machine in every iteration
    * Method called by agent class in every iteration. Evaluates the received data and
@@ -64,14 +68,18 @@ private:
    * to determine, wether the initialization process has been completed successfully.
    */
   void callBackCovariance(const std_msgs::Float32& msg);
-  ros::NodeHandle& nh_;            ///< reference to main node handle of state machine
   ros::Subscriber subsCovariance_; ///< ROS subscriber object
+  ros::ServiceClient _getAllInventoryData; ///< ROS Client to Inventory to obtain locations
+
+  std::string getAllInventoryTopic_;
+
   bool covarianceReceived_;        ///< Flag determining receivement of covariance message
   double covariance_;              ///< current covariance
   ros::Publisher pubCommandVel_;   ///< ROS publisher object
   double threshCovariance_;        ///< threshold for the covarinance (thresh reached -> successful localization)
   double initAngularVel_;          ///< constant angular velocity used to localize the pf
+
+  std::vector<kobuki_fleet_msgs::LocationIdentifier> allLocalizations_;
 };
 
-}
 #endif /* ROS_SRC_KOB_SM_SRC_STATES_STATE_INIT_H_ */

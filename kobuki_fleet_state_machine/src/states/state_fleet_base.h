@@ -3,6 +3,7 @@
  *
  *  Created on: Aug 3, 2016
  *      Author: phil
+ *      Author: Jon Martin
  */
 
 #ifndef SRC_STATE_MACHINE_STATES_STATE_FLEET_BASE_H_
@@ -15,16 +16,11 @@
 
 #include <ros/ros.h>
 
-#include "obcore/statemachine/states/StateBase.h"
+//#include "obcore/statemachine/states/StateBase.h"
+#include "StateBase.h"
 
 #include "model/model.h"
 #include "kobuki_fleet_msgs/StateMachineStat.h"
-
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
 
 /**
  * @class StateFleetBase
@@ -32,7 +28,7 @@ namespace bobbyrob
  * Base class for state machine states. Contains all shared objects such as ROS
  * Node Handle or reference to the model.
  */
-class StateFleetBase: public obvious::StateBase
+class StateFleetBase: public StateBase
 {
 public:
   /**
@@ -40,7 +36,7 @@ public:
    * @param model Model Reference to current model
    * @param nh ros::NodeHandle
    */
-  StateFleetBase(Model& model, ros::NodeHandle& nh);
+  StateFleetBase(Model* model);
   /**
    * @brief Destructor
    */
@@ -56,12 +52,15 @@ protected:
    * Method to publish stats of the derived state. Called by derived state.
    */
   void publishStateStat(void);
-  Model& model_;                       ///< Reference to shared model instance
-  ros::NodeHandle& nh_;                /// Reference to shared node handle
+  Model* const model_;                       ///< Reference to shared model instance
+  ros::NodeHandle* const nh_;                /// Reference to shared node handle
   ros::NodeHandle prvNh_;              /// private node handle for access to ROS parameter server
   ros::Publisher pubStateMachineStat_; /// ROS publisher object
-};
 
-} /* namespace bobbyrob */
+  enum IdStatePersistant
+    {
+      STATE_NEXT = 0
+    };
+};
 
 #endif /* SRC_STATE_MACHINE_STATES_STATE_FLEET_BASE_H_ */

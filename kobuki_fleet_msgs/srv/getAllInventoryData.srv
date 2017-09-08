@@ -1,0 +1,4 @@
+std_msgs/Bool start
+---
+kobuki_fleet_msgs/LocationIdentifier[] locations
+std_msgs/Bool finished

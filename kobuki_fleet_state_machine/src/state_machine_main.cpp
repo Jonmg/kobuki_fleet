@@ -11,7 +11,7 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "kob_state_machine");
-  bobbyrob::StateMachine sm;
+  StateMachine sm;
   sm.start();
 }
 

@@ -3,6 +3,7 @@
  *
  *  Created on: Aug 1, 2016
  *      Author: phil
+ *      Author: Jon Martin
  */
 
 #ifndef ROS_SRC_KOB_SM_SRC_STATES_STATE_ERROR_H_
@@ -17,11 +18,6 @@
 #include "model/model.h"
 #include "state_fleet_base.h"
 
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
 
 class StateError: public StateFleetBase
 {
@@ -35,7 +31,8 @@ public:
     CONNECTION = 0,//!< CONNECTION
     GOAL_ABORTED,   //!< GOAL_ABORTED
     GOAL_PREEMPTED,
-    INIT_ERROR
+    INIT_ERROR,
+    NEXT_ERROR
   };
   /**
    * Constructor
@@ -43,7 +40,7 @@ public:
    * @param nh ros::NodeHandle reference to main node handle
    * @param state ErrorState reason for entering the error state
    */
-  StateError(Model& model, ros::NodeHandle& nh, const ErrorState& state);
+  StateError(Model* const model, const ErrorState& state);
   /**
    * Destructor
    */
@@ -63,5 +60,4 @@ private:
   const ErrorState state_;  /// current error state
 };
 
-}
 #endif /* ROS_SRC_KOB_SM_SRC_STATES_STATE_ERROR_H_ */

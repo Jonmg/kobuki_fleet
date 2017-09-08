@@ -14,11 +14,6 @@
 
 #include "controller_task_list.h"
 
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
 
 ControllerTaskList::ControllerTaskList(ros::NodeHandle& nh):
     nh_(nh),
@@ -346,4 +341,3 @@ kobuki_fleet_msgs::Task* const ControllerTaskList::task(const std_msgs::UInt16& 
   return NULL;
 }
 
-} /* namespace bobbyrob */

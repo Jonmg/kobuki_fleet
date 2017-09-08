@@ -14,14 +14,9 @@
 
 #include <string>
 
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
-
-ControllerHeartbeatList::ControllerHeartbeatList(ros::NodeHandle& nh):
+ControllerHeartbeatList::ControllerHeartbeatList(ros::NodeHandle& nh, Model* model):
             nh_(nh),
+            model_(model),
             heartBeatList_(NULL)
 {
   ros::NodeHandle prvNh("~");
@@ -114,4 +109,3 @@ void ControllerHeartbeatList::callBackHeartBeatList(const kobuki_fleet_msgs::Hea
   else
     *heartBeatList_ = msg;
 }
-} /* namespace bobbyrob */

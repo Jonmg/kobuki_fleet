@@ -3,6 +3,7 @@
  *
  *  Created on: Aug 1, 2016
  *      Author: phil
+ *      Author: Jon Martin
  */
 
 /**
@@ -12,14 +13,9 @@
 
 #include "state_error.h"
 
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
 
-StateError::StateError(Model& model, ros::NodeHandle& nh, const ErrorState& state):
-                        StateFleetBase(model, nh),
+StateError::StateError(Model* const model, const ErrorState& state):
+                        StateFleetBase(model),
                         state_(state)
 {
   // TODO Auto-generated constructor stub
@@ -55,20 +51,19 @@ void StateError::onActive()
   }
   if((!success))// && (state_ != INIT_ERROR))
   {
-    if(model_.curTask())
-    {
+
       std_msgs::UInt16 tid;
-      tid.data = model_.curTask()->tid;
+      tid.data = model_->curTask().tid;
 
 //      std_msgs::UInt16 rid;
-//      rid.data = model_.robotId().data;
+//      rid.data = model_->robotId().data;
 
       std_msgs::UInt8 newState;
       newState.data = kobuki_fleet_msgs::Task::ERROR;
 
-      if(!(success = model_.controllerTasks().setTaskState(tid, newState)))
-        ROS_ERROR_STREAM(__PRETTY_FUNCTION__ << " error! Failed to set task " << tid << " to error");
-    }
+//      if(!(success = model_->controllerTasks().setTaskState(tid, newState)))
+//        ROS_ERROR_STREAM(__PRETTY_FUNCTION__ << " error! Failed to set task " << tid << " to error");
+
   }
 }
 
@@ -79,4 +74,3 @@ const kobuki_fleet_msgs::StateMachineStat StateError::state(void)const
   return stat;
 }
 
-}

@@ -1,0 +1,9 @@
+<launch>
+
+  <node pkg="kobuki_fleet_snapshot" type="kobuki_fleet_snapshot_node" name="kobuki_fleet_snapshot_node" clear_params="true" output="screen"> 
+  	<param name="laserTopic" value="/sick/scan" /> <!-- robot:/sick/scan stdr:/robot0/laser_0-->
+  	<param name="mapFrame" value="/map" />
+  	<param name="baseFootprintFrame" value="/base_link" /> <!-- robot:/base_link stdr:robot0-->
+  </node>
+  
+</launch>

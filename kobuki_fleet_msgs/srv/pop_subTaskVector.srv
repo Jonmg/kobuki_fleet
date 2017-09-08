@@ -1,0 +1,4 @@
+---
+kobuki_fleet_msgs/SubTaskVector subTasks
+kobuki_fleet_msgs/Task currentTask
+std_msgs/Bool status

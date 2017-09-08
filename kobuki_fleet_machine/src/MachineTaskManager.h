@@ -17,6 +17,7 @@
 #include <kobuki_fleet_msgs/BiddingOffer.h>
 #include <kobuki_fleet_msgs/AssignTask.h>
 #include <kobuki_fleet_msgs/TaskStatus.h>
+#include <kobuki_fleet_msgs/Task.h>
 #include <std_srvs/Empty.h>
 
 #include <actionlib/client/simple_action_client.h>
@@ -83,6 +84,7 @@ private:
   std::list<kobuki_fleet_msgs::Bidding>::iterator itBiddingList_;
 
   bool publishNewTask_;
+  int wsId_;
 
   std::string asignTaskTopic_;
 

@@ -1,0 +1,18 @@
+%YAML:1.0
+Workstation: MA5
+Station Height: 0.
+F20_20_B: [ 0, 0, 0, 0, 0 ]
+S40_40_B: [ 0, 0, 0, 0, 0 ]
+M20: [ 0, 0, 0, 0, 0 ]
+M30: [ 0, 0, 0, 0, 0 ]
+R20: [ 0, 0, 0, 0, 0 ]
+default: [ 50, 1, 3, 30, 190 ]
+Frame_id: ""
+Angle_min: 0.
+Angle_max: 0.
+Range_min: 0.
+Range_max: 0.
+Angle_increment: 0.
+Ranges: []
+Pose: [ 6.0002046189255847e+00, 3.6300602005658504e+00, 0. ]
+Quaternion: [ 0., 0., 7.0514984725199126e-01, 7.0905831418896237e-01 ]

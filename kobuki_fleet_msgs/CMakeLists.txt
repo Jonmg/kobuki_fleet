@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   actionlib_msgs
+  sensor_msgs
 )
 
 SET(CMAKE_BUILD_TYPE RELEASE)
@@ -28,6 +29,9 @@ add_message_files(
    NewTask.msg
    NewTaskList.msg
    Bidding.msg
+   LocationIdentifier.msg
+   SubTask.msg
+   SubTaskVector.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -36,6 +40,11 @@ add_message_files(
    BiddingOffer.srv 
    AssignTask.srv
    TaskStatus.srv
+   getAllInventoryData.srv
+   GetCurrentTask.srv
+   getInventoryData.srv
+   setInventoryData.srv
+   pop_subTaskVector.srv
  )
 
 ## Generate actions in the 'action' folder
@@ -51,6 +60,7 @@ generate_messages(
    std_msgs  
    geometry_msgs
    actionlib_msgs
+   sensor_msgs
 )
 
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need

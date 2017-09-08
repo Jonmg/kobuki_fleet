@@ -3,6 +3,7 @@
  *
  *  Created on: Aug 1, 2016
  *      Author: phil
+ *      Author: Jon Martin
  */
 
 #ifndef ROS_SRC_KOB_SM_SRC_STATE_MACHINE_H_
@@ -16,18 +17,17 @@
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
 
-#include "obcore/statemachine/Agent.h"
+//#include "obcore/statemachine/Agent.h"
+#include "model/Agent.h"
 #include "model/model.h"
 #include "kobuki_fleet_msgs/ConnectionState.h"
+
+//#include "model/controller_tasks.h"
+//#include "model/controller_heartbeat_list.h"
 
 //#include <actionlib/client/simple_action_client.h>
 //#include <stdr_msgs/DeleteRobotAction.h>
 
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
 /**
  * @class StateMachine
  * @brief Main management class for the state machine.
@@ -78,10 +78,12 @@ private:
    * @return true in case of success
    */
   bool callBackKillService(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
-  ros::NodeHandle nh_;                    ///< ros::NodeHandle main node handle
-  obvious::Agent* agent_;                 ///< obvious::Agent pointer to agent instance
+  ros::NodeHandle* nh_;                    ///< ros::NodeHandle main node handle
+  Agent agent_;                          ///< Agent
   Model* model_;                          ///< Model pointer to shared model
-  ros::Rate r_;                           ///< ros::Rate loop rate
+  //ControllerTasks* controllerTasks_;  ///< instance of task list controller
+  //ControllerHeartbeatList* controllerHeartBeatList_; ///instance of heart beat list controller
+  ros::Rate* r_;                           ///< ros::Rate loop rate
   ros::Subscriber subsConnectionState_;   ///< ros::Subscriber ROS subscriber object
   ros::ServiceServer serverKill_;       ///< ros::ServiceServer ROS service service server object
   ros::ServiceClient unloadRobotStdrClient_;
@@ -91,6 +93,5 @@ private:
 
 };
 
-}
 
 #endif /* ROS_SRC_KOB_SM_SRC_STATE_MACHINE_H_ */

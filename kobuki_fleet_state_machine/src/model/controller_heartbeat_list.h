@@ -19,11 +19,7 @@
 
 #include "kobuki_fleet_msgs/HeartBeatList.h"
 
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
+#include "model.h"
 
 /**
  * @class ControllerHeartBeat
@@ -38,7 +34,7 @@ public:
    * Constructor
    * @param nh ros::NodeHandle reference to main NodeHandle
    */
-  ControllerHeartbeatList(ros::NodeHandle& nh);
+  ControllerHeartbeatList(ros::NodeHandle& nh, Model* model);
   /**
    * Destructor
    */
@@ -85,8 +81,9 @@ private:
   kobuki_fleet_msgs::HeartBeatList* heartBeatList_;  ///< buffer for storing the current heartbeatlist
   ros::Subscriber subsHeartBeatList_;                   ///< ROS subscriber object
   //ros::Publisher pubHeartBeatList_;                     ///< ROS publisher objec (used for republishing heartbeatlist)
+
+  Model* const model_;
 };
 
-} /* namespace bobbyrob */
 
 #endif /* SRC_STATE_MACHINE_MODEL_CONTROLLER_HEARTBEAT_LIST_H_ */

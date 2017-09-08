@@ -3,6 +3,7 @@
  *
  *  Created on: Aug 1, 2016
  *      Author: phil
+ *      Author: Jon Martin
  */
 
 #ifndef ROS_SRC_KOB_SM_SRC_STATES_STATE_NEXT_H_
@@ -14,14 +15,11 @@
 #include "state_fleet_base.h"
 #include "kobuki_fleet_msgs/Task.h"
 
+#include "kobuki_fleet_msgs/SubTask.h"
+#include "kobuki_fleet_msgs/SubTaskVector.h"
 
 ///@todo: rename state next with process task vector
 
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
 
 /**
  * @class StateNext
@@ -38,7 +36,7 @@ public:
    * @param nh ros::NodeHandle reference to main node handle
    * @param task kobuki_fleet_msgs::Task pointer to current task
    */
-  StateNext(Model& model, ros::NodeHandle& nh);
+  StateNext(Model* model);
   /**
    * Destructor
    */
@@ -55,8 +53,21 @@ public:
    */
   virtual const kobuki_fleet_msgs::StateMachineStat state(void)const;
 
+private:
+
+  ros::ServiceClient settaskStatusClient_;
+
+  /**
+     * saves in the model the actualSubTask and the rest on the subTaskVector
+     */
+    bool nextTask();
+
+    kobuki_fleet_msgs::SubTask actualSubTask_;
+
+    kobuki_fleet_msgs::SubTaskVector subTaskVector_;
+
+    int subTaskActualNumber_;
 };
 
-}
 
 #endif /* ROS_SRC_KOB_SM_SRC_STATES_STATE_NEXT_H_ */

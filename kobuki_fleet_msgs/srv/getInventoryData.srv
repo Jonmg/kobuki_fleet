@@ -1,0 +1,14 @@
+std_msgs/Bool start
+std_msgs/String object
+std_msgs/String actual_station
+---
+std_msgs/Float32 station_height
+std_msgs/Int16 material_type
+std_msgs/Int16 brightness
+std_msgs/Int16 threshold_1
+std_msgs/Int16 threshold_2
+std_msgs/Int16 filter_size
+std_msgs/Int16 filter
+sensor_msgs/LaserScan laserScan
+geometry_msgs/Pose pose
+std_msgs/Bool finished

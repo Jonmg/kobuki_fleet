@@ -1,11 +1,10 @@
 <launch>
 	<include file = "$(find kobuki_fleet_launch)/launch/fleet_robot.launch">
-		<arg name="robot_ns" default="robot1" />
+	  <arg name="robot_ns" default="robot1" />
 	  <arg name="robot_id" default="1" />
-	  <arg name="offset_x" default="0.5" />
-    <arg name="offset_y" default="8.0" />	  
-    <arg name="offset_yaw" default="0.0" />	
-    <arg name="simulation" default="true" />
-
+	  <arg name="offset_x" default="1.2" />
+      <arg name="offset_y" default="5.0" />	  
+    <arg name="offset_yaw" default="0.0" />
+      <arg name="simulation" default="true" />
 	</include>
 </launch>

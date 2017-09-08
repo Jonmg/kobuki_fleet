@@ -32,9 +32,30 @@
     <param name = "tf_base_frame"             type = "string" value = "map"/>
     <param name = "tf_robot_frame"             type = "string" value = "$(arg robot_ns)"/>
     <param name = "topic_task_status"             type = "string" value = "/task_status_ws_"/>
+    <param name = "topic_get_current_subTask_vector_server" type = "string" value = "/getCurrentSubTask$(arg robot_ns)"/>
+    <param name = "topic_set_task_status_server"             type = "string" value = "/set_task_status$(arg robot_id)"/>
 
 		<!-- CONTROLLER_HEARTBEAT_LIST -->
 		<param name = "topic_heart_beat_list" type = "string" value = "heartbeat_list_robot_$(arg robot_id)" />			
+	</node>
+	
+	<node pkg = "kobuki_fleet_state_machine" name = "control_tasks_node$(arg robot_id)" type = "control_tasks_node" output = "screen">
+		<param name = "robot_id"              type = "int" value = "$(arg robot_id)" />
+    <param name = "robot_name"            type = "string" value = "$(arg robot_ns)" />
+		<param name = "topic_task_list"         type = "string" value = "/task_list"         />                          
+	    <param name = "topic_initial_task_list" type = "string" value =  "/initial_task_list"/>	
+	    <param name = "topic_new_task"                type = "string" value = "/new_task"/>
+	    <param name = "topic_bidding"                 type = "string" value = "/bidding_ws_" />
+	    <param name = "topic_assign_task"             type = "string" value = "/assign_task_r$(arg robot_id)"/>
+	    <param name = "get_plan_topic"             type = "string" value = "$(arg robot_ns)_move_base/NavfnROS/make_plan"/>
+	    <param name = "tf_base_frame"             type = "string" value = "map"/>
+	    <param name = "tf_robot_frame"             type = "string" value = "$(arg robot_ns)"/>
+	    <param name = "topic_task_status"             type = "string" value = "/task_status_ws_"/>
+	    <param name = "topic_get_current_subTask_vector_server" type = "string" value = "/getCurrentSubTask$(arg robot_ns)"/>
+	    <param name = "topic_heart_beat_list" type = "string" value = "heartbeat_list_robot_$(arg robot_id)" />	
+	    <param name = "topic_set_task_status_server"             type = "string" value = "/set_task_status$(arg robot_id)"/>
+	    		
+	    
 	</node>
 	
 

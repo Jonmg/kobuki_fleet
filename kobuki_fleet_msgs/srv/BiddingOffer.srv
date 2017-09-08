@@ -1,4 +1,6 @@
-Header header
+string machineName
+string robotName
 kobuki_fleet_msgs/Bidding bidd
-bool cancelOffer
+bool cancelOffer        # not used right now
 ---
+bool success

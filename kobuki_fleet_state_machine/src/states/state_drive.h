@@ -3,6 +3,7 @@
  *
  *  Created on: Aug 1, 2016
  *      Author: phil
+ *      Author: Jon Martin
  */
 
 #ifndef ROS_SRC_KOB_SM_SRC_STATES_STATE_DRIVE_H_
@@ -21,13 +22,7 @@
 #include "model/model.h"
 #include "state_fleet_base.h"
 
-/**
- * @namespace bobbyrob
- */
-namespace bobbyrob
-{
 
-//namespace
 //{
 //  const unsigned int TRIES_REACH_MV_BS = 5; ///maximum tries to reach move base server before going into error
 //  const double TIME_OUT_MV_BS = 1.0;        ///maximum time span for a waiting loop for move base
@@ -48,7 +43,7 @@ public:
    * @param nh ros::NodeHandle reference to main node handle
    * @param goal geometry_msgs::Pose driving goal
    */
-  StateDrive(Model& model, ros::NodeHandle& nh, const geometry_msgs::Pose& goal);
+  StateDrive(Model* const model);
   /**
    * Destructor
    */
@@ -71,9 +66,9 @@ public:
    */
   virtual const kobuki_fleet_msgs::StateMachineStat state(void)const;
 private:
-  const geometry_msgs::Pose& goal_; ///< buffer for current goal
+
+  actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>* moveBaseClient_;
 };
 
-}
 
 #endif /* ROS_SRC_KOB_SM_SRC_STATES_STATE_DRIVE_H_ */

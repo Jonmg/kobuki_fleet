@@ -1,4 +1,4 @@
 Header header
-kobuki_fleet_msgs/NewTask newTask
-uint16 rid
-uint16 cost
+uint16 tid      # unnecessary
+uint16 rid      # unnecessary
+uint16 cost     # changed
